@@ -13,7 +13,7 @@ unset GIT_DIR
 # config
 PGBOUNCER_VERSION="1.5.4-heroku"
 STUNNEL_VERSION="5.01"
-S3_BUCKET="gregburek-buildpack-pgbouncer"
+S3_BUCKET="sookasa-buildpack"
 
 # parse and derive params
 BUILD_DIR=$1
@@ -40,7 +40,7 @@ function package_download() {
   location="$3"
 
   mkdir -p $location
-  package="https://${S3_BUCKET}.s3.amazonaws.com/$engine-$version.tgz"
+  package="https://s3.amazonaws.com/{$S3_BUCKET}/$engine-$version.tgz"
   curl $package -s -o - | tar xzf - -C $location
 }
 
