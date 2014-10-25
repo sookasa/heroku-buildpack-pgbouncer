@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
+# bin/compile <build-dir> <cache-dir> <env-dir>
 
 # fail fast
 set -e
@@ -12,7 +12,7 @@ unset GIT_DIR
 
 # config
 PGBOUNCER_VERSION="1.5.4-heroku"
-STUNNEL_VERSION="5.01"
+STUNNEL_VERSION="5.02"
 S3_BUCKET="sookasa-buildpack"
 
 # parse and derive params
@@ -38,6 +38,7 @@ function package_download() {
   engine="$1"
   version="$2"
   location="$3"
+  stack="$4"
 
   mkdir -p $location
   package="https://s3.amazonaws.com/{$S3_BUCKET}/$engine-$version.tgz"
@@ -46,18 +47,23 @@ function package_download() {
 
 echo "Using pgbouncer version: ${PGBOUNCER_VERSION}" | indent
 echo "Using stunnel version: ${STUNNEL_VERSION}" | indent
+echo "Using stack version: ${STACK}" | indent
+
+# vendor directories
+VENDORED_PGBOUNCER="vendor/pgbouncer"
+VENDORED_STUNNEL="vendor/stunnel"
 
 # vendor pgbouncer into the slug
-PATH="$BUILD_DIR/vendor/pgbouncer/bin:$PATH"
+PATH="$BUILD_DIR/$VENDORED_PGBOUNCER/bin:$PATH"
 echo "-----> Fetching and vendoring pgbouncer into slug"
-mkdir -p "$BUILD_DIR/vendor/"
-package_download "pgbouncer" "${PGBOUNCER_VERSION}" "${BUILD_DIR}/vendor"
+mkdir -p "$BUILD_DIR/$VENDORED_PGBOUNCER"
+package_download "pgbouncer" "${PGBOUNCER_VERSION}" "${BUILD_DIR}/${VENDORED_PGBOUNCER}" "${STACK}"
 
 # vendor stunnel into the slug
-PATH="$BUILD_DIR/vendor/stunnel/bin:$PATH"
+PATH="$BUILD_DIR/$VENDORED_STUNNEL/bin:$PATH"
 echo "-----> Fetching and vendoring stunnel into slug"
-mkdir -p "$BUILD_DIR/vendor/"
-package_download "stunnel" "${STUNNEL_VERSION}" "${BUILD_DIR}/vendor"
+mkdir -p "$BUILD_DIR/$VENDORED_STUNNEL"
+package_download "stunnel" "${STUNNEL_VERSION}" "${BUILD_DIR}/${VENDORED_STUNNEL}" "${STACK}"
 
 echo "-----> Moving the configuration generation script into app/bin"
 mkdir -p $BUILD_DIR/bin
